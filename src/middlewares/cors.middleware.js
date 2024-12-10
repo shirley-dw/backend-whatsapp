@@ -1,5 +1,7 @@
 const allowed_origins = [
     'http://localhost:5173',
+    //Agregar dato de Vercel url de frontend
+    //ENVIROMEN.FRONTEND.URL mismo cambio en mi .env
 ];
 export const customCorsMiddleware = ((req, res, next) => {
     const origin = req.headers.origin;

@@ -137,7 +137,7 @@ export const registerController = async (req, res) => {
         .build();
       return res.json(response);
     }
-
+    console.error(error)
     const response = new ResponseBuilder()
       .setOk(false)
       .setCode(500)

@@ -20,6 +20,7 @@
     "enviroment": "^1.0.0",
     "express": "^4.21.1",
     "jsonwebtoken": "^9.0.2",
+    "mongobd": "^0.0.1-security.0",
     "mongoose": "^8.8.3",
     "multer": "^1.4.5-lts.1",
     "node": "^20.18.1",
