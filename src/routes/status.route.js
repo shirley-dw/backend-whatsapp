@@ -9,7 +9,7 @@ const statusRouter = express.Router()
 
 statusRouter.post('/ping', postPingController)
 statusRouter.get('/ping', (req, res) =>
-    req.sendStatus(200)
+    res.sendStatus(200)
 )
 
 export default statusRouter
