@@ -1,12 +1,12 @@
 import cors from "cors";
 import express from "express";
-import authRouter from "./src/routes/auth.route.js";
-import messageRouter from "./src/routes/messages.route.js";
-import contactRouter from "./src/routes/contact.route.js";
-import statusRouter from "./src/routes/status.route.js";
-import connectDB from './src/config/db.config.js';
-import { customCorsMiddleware } from "./src/middlewares/cors.middleware.js";
-import ENVIROMENT from "./src/config/enviroment.js";
+import authRouter from "./routes/auth.route.js";
+import messageRouter from "./routes/messages.route.js";
+import contactRouter from "./routes/contact.route.js";
+import statusRouter from "./routes/status.route.js";
+import connectDB from './config/db.config.js';
+import { customCorsMiddleware } from "./middlewares/cors.middleware.js";
+import ENVIROMENT from "./config/enviroment.js";
 
 const PORT = ENVIROMENT.PORT;
 const app = express();
