@@ -1,27 +1,31 @@
-import jwt from "jsonwebtoken";
-import ENVIROMENT from "../config/enviroment.js";
-import User from "../models/user.model.js";
+import jwt from 'jsonwebtoken';
+import ENVIROMENT from '../config/enviroment.js';
 
-export const authenticateToken = async (req, res, next) => {
-  const authHeader = req.headers["authorization"];
-  const token = authHeader && authHeader.split(" ")[1];
+const authMiddleware = (req, res, next) => {
+  const token = req.headers['authorization']?.split(' ')[1]; // Extraer el token del encabezado
+  console.log("Token recibido:", token); // Log para verificar que el token se pasa correctamente
 
   if (!token) {
-    return res.status(401).json({ message: "Token no encontrado" });
+    return res.status(401).json({
+      ok: false,
+      message: 'Token no proporcionado'
+    });
   }
 
-  try {
-    const decoded = jwt.verify(token, ENVIROMENT.SECRET_KEY);
-    const user = await User.findById(decoded.user_id);
-
-    if (!user) {
-      return res.status(403).json({ message: "Usuario no encontrado" });
+  jwt.verify(token, ENVIROMENT.SECRET_KEY, (err, decoded) => {
+    if (err) {
+      console.error("Error al verificar el token:", err.message); // Log detallado
+      return res.status(401).json({
+        ok: false,
+        message: 'Token inválido'
+      });
     }
 
-    req.user = user;
+    console.log("Token decodificado:", decoded); // Verifica los datos decodificados del token
+    req.user = decoded;
     next();
-  } catch (error) {
-    console.error("Error al verificar el token:", error);
-    return res.status(403).json({ message: "Token no válido" });
-  }
+  });
 };
+
+export default authMiddleware;
+

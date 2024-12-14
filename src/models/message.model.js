@@ -1,40 +1,38 @@
-import mongoose, { Schema } from "mongoose";
+import mongoose from "mongoose";
 
-const MessageSchema = new mongoose.Schema(
-  {
-    author: {
-      type: Schema.Types.ObjectId,
-      ref: "User",
-      required: true,
-    },
-    destinatario: {
-      type: Schema.Types.ObjectId,
-      ref: "User",
-      required: true,
-    },
-    text: {
-      type: String,
-      required: true,
-    },
-    status: {
-      type: String,
-      enum: ["no visto", "enviado", "visto"],
-      default: "enviado",
-    },
-    day: {
-      type: String,
-      required: true,
-    },
-    hour: {
-      type: String,
-      required: true,
-    },
+const messageSchema = new mongoose.Schema({
+  author: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User',
+    required: true
   },
-  {
-    timestamps: true,
+  receiver: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User',
+    required: true
+  },
+  content: {
+    type: String,
+    required: true
+  },
+  created_at: {
+    type: Date,
+    default: new Date()
+  },
+  status: {
+    type: String,
+    default: 'Enviado'
+  },
+  day: {
+    type: String,
+    required: true
+  },
+  hour: {
+    type: String,
+    required: true
   }
-);
+})
 
-const Message = mongoose.model("Message", MessageSchema);
+const Message = mongoose.model('Message', messageSchema)
 
-export default Message;
+export default Message

@@ -1,5 +1,5 @@
 import jwt from "jsonwebtoken";
-import ENVIROMENT from "../src/config/enviroment.js";
+import ENVIROMENT from "../config/enviroment";
 
 const { verify } = jwt;
 

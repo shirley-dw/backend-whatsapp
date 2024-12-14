@@ -33,10 +33,10 @@ const userSchema = new mongoose.Schema({
     type: Boolean,
     default: true,
   },
-  contactos: [
+  contacts: [
     {
       type: Schema.Types.ObjectId,
-      ref: "Contacto",
+      ref: "User",
     },
   ],
 });

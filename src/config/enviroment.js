@@ -14,6 +14,9 @@ const ENVIROMENT = {
   MONGO_URL: process.env.MONGO_URL || "",
   PORT: process.env.PORT || 3000,
   NODE_ENV: process.env.NODE_ENV || "development",
+  BACKEND_URL: process.env.BACKEND_URL || "",
+  MONGO_DB_CONNECTION_STR: process.env.MONGO_DB_CONNECTION_STR || "",
+  MONGO_DB_DATABASE: process.env.MONGO_DB_DATABASE || "",
 };
 
 export default ENVIROMENT;
