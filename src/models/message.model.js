@@ -25,11 +25,11 @@ const messageSchema = new mongoose.Schema({
   },
   day: {
     type: String,
-    required: true
+
   },
   hour: {
     type: String,
-    required: true
+
   }
 })
 

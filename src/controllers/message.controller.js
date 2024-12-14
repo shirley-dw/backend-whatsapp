@@ -1,37 +1,34 @@
 
+import { log } from "console";
 import MessageRepository from "../repositories/message.repository.js";
 import mongoose from "mongoose";
+
 
 // Crear un nuevo mensaje
 export const createMessage = async (req, res) => {
   try {
-    const user_id = req.user.id;
-    const { receiver_id, content, hour, day } = req.body;
+    const user_id = req.user.id;  // Obtener el user_id desde el JWT decodificado
+    const { receiver_id, content } = req.body;
 
-    if (!hour || !day) {
-      return res.status(400).json({
-        ok: false,
-        status: 400,
-        message: "Hour and day are required"
-      });
+    console.log("user_id:", user_id);  // Log para depuración
+    console.log("receiver_id:", receiver_id);
+    console.log("content:", content);
+
+    if (!user_id || !receiver_id || !content) {
+      return res.status(400).json({ ok: false, message: 'Missing required fields' });
     }
 
-
     const new_message = await MessageRepository.createMessage({
-      author: user_id,
+      author: user_id,  // Asegúrate de que user_id esté correctamente asignado aquí
       receiver: receiver_id,
-      content: content,
-      hour: hour,
-      day: day
+      content: content
     });
 
     return res.status(201).json({
       ok: true,
       status: 201,
-      message: 'Message created successfully',
-      data: {
-        message: new_message
-      }
+      message: 'Message created',
+      data: { message: new_message }
     });
   } catch (error) {
     console.error(error);
@@ -46,28 +43,33 @@ export const createMessage = async (req, res) => {
 
 export const getConversation = async (req, res) => {
   try {
-    const user_id = req.user.id;
-    const { receiver_id } = req.params;
-
-    const conversation = await MessageRepository.findMessagesBetweenUsers(user_id, receiver_id);
+    const user_id = req.user.id
+    const { receiver_id } = req.params
+    const conversation = await MessageRepository.findMessagesBetweenUsers(user_id, receiver_id)
+    console.log(conversation)
 
     return res.status(200).json({
       ok: true,
       status: 200,
       message: 'Conversation found',
       data: {
-        conversation,
-      },
-    });
-  } catch (error) {
-    console.error(error);
+        conversation
+
+      }
+    })
+  }
+
+  catch (error) {
+    console.error(error)
     return res.status(500).json({
       ok: false,
       status: 500,
-      message: 'Internal server error',
-    });
+      message: 'Internal server error'
+    })
   }
-};
+}
+
+
 
 // Obtener todos los mensajes
 

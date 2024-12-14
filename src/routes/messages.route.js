@@ -20,6 +20,6 @@ messageRouter.get("/messages", authMiddleware, getAllMessagesController); // Obt
 messageRouter.get("/messages/:id", authMiddleware, getMessageByIdController); // Obtener mensaje por ID
 messageRouter.put("/messages/:id", authMiddleware, updateMessageController); // Actualizar mensaje
 messageRouter.delete("/messages/:id", authMiddleware, deleteMessageController); // Eliminar mensaje
-messageRouter.get("/conversation", authMiddleware, getConversation); // Obtener conversación por ID
+messageRouter.get("/conversation/:receiver_id", authMiddleware, getConversation);  // Ruta correcta
 
 export default messageRouter;

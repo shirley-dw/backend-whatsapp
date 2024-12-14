@@ -1,11 +1,12 @@
 import express from "express";
 import authMiddleware from "../middlewares/auth.middleware.js";
 import {
-    addContact,
+    createContactForUser,
     deleteContactController,
     getAllContactsController,
     getContactByIdController,
     updateContactController,
+    getUserContacts
 
 } from "../controllers/contact.controller.js";
 
@@ -14,12 +15,12 @@ const contactRouter = express.Router();
 
 // Rutas de contactos
 
-contactRouter.post("/add", authMiddleware, addContact);                     // Crear contacto
-contactRouter.get("/contacts", authMiddleware, getAllContactsController);            // Obtener todos los contactos
-contactRouter.get("/contacts/:id", authMiddleware, getContactByIdController);        // Obtener contacto por ID
-contactRouter.put("/contacts/:contact_id", authMiddleware, updateContactController);         // Actualizar contacto
-contactRouter.delete("/contacts/:id", authMiddleware, deleteContactController);      // Eliminar contacto
-
+contactRouter.post("/add/:id", authMiddleware, createContactForUser);                     // Crear contacto para un usuario
+contactRouter.get("/contacts", authMiddleware, getAllContactsController);             // Obtener todos los contactos
+contactRouter.get("/contacts/:id", authMiddleware, getContactByIdController);         // Obtener contacto por ID
+contactRouter.put("/contacts/:contact_id", authMiddleware, updateContactController);  // Actualizar contacto
+contactRouter.delete("/delete/:user_id/:contact_id", authMiddleware, deleteContactController);
+contactRouter.get("/userContacts", authMiddleware, getUserContacts);                 // Obtener contactos de un usuario
 export default contactRouter;
 
 

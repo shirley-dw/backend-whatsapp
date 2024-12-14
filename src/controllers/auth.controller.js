@@ -238,11 +238,12 @@ export const loginController = async (req, res) => {
 
     // Generar el token JWT con el user_id
     const token = jwt.sign(
-      { user_id: user._id.toString(), name: user.name, email: user.email },  // Genera el token
-      ENVIROMENT.SECRET_KEY,
       {
-        expiresIn: "1d",  // El token expirará en 1 día
-      }
+        user_id: user._id,  // Este campo es el que necesitas
+        email: user.email
+      },
+      process.env.SECRET_KEY,
+      { expiresIn: '1h' }
     );
 
 

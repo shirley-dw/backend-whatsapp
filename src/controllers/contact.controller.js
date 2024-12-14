@@ -1,82 +1,96 @@
 import UserRepository from "../repositories/user.repository.js";
 import mongoose from "mongoose";
-import {
-  verifyString,
-  verifyMinLength,
-  verifyPhone,
-  verifyEmail,
-} from '../helpers/validations.helpers.js';
+import { log } from "console";
 
-//Crear contacto
+//Crear contacto para un usuario
 
-export const addContact = async (req, res) => {
+export const createContactForUser = async (req, res) => {
   try {
-    const user_id = req.user.id; // Obtener el ID del usuario autenticado
-    const { contact_name, contact_email, contact_phone } = req.body; // Obtener los datos del contacto
+    const { contact_name, contact_email, contact_phone } = req.body;
+    const { id: user_id } = req.params;
 
-    // Validaciones de los campos
-    let validationError = verifyString('Nombre de contacto', contact_name);
-    if (validationError) return res.status(400).json(validationError);
-
-    validationError = verifyMinLength('Nombre de contacto', contact_name, 3); // Mínimo 3 caracteres para el nombre
-    if (validationError) return res.status(400).json(validationError);
-
-    validationError = verifyEmail('Correo electrónico de contacto', contact_email);
-    if (validationError) return res.status(400).json(validationError);
-
-    validationError = verifyPhone('Teléfono de contacto', contact_phone);
-    if (validationError) return res.status(400).json(validationError);
-
-    // Buscar al usuario por email
-    const user_found = await UserRepository.findUserByEmail(contact_email);
-
-    if (!user_found) {
-      return res.status(404).json({
-        ok: false,
-        status: 404,
-        message: 'User not found',
-      });
+    // Verifico que el user_id sea un ObjectId válido
+    if (!mongoose.Types.ObjectId.isValid(user_id)) {
+      return res.status(400).json({ message: "ID de usuario inválido" });
     }
 
-
-    // Buscar el usuario actual por ID
+    // Busco el usuario que intenta agregar el contacto
     const user = await UserRepository.findUserById(user_id);
+    if (!user) {
+      return res.status(404).json({ message: "Usuario no encontrado" });
+    }
 
-    // Si no se encuentra el usuario actual, se devuelve un error
+    // Busco si el contacto ya existe por su correo electrónico
+    let contact = await UserRepository.findUserByEmail(contact_email);
+
+    if (contact) {
+      // Si el contacto ya existe, aseguramos que no esté ya en los contactos del usuario
+      if (!user.contacts.includes(contact._id)) {
+        user.contacts.push(contact._id);
+        await user.save();
+      }
+    } else {
+      // Si el contacto no existe, creamos un nuevo contacto
+      contact = await UserRepository.createUser({
+        name: contact_name,
+        email: contact_email,
+        password: "default_password",
+        emailVerified: false,
+      });
+
+      // Agregar el nuevo contacto al usuario
+      user.contacts.push(contact._id);
+      await user.save();
+    }
+
+    res.status(200).json({ message: "Contacto creado o asociado con éxito", contacto: contact });
+  } catch (error) {
+    console.error("Error al crear o asociar el contacto:", error);
+    res.status(500).json({ message: "Error al crear o asociar el contacto" });
+  }
+};
+
+
+//Obtener contactos de un usuario
+
+export const getUserContacts = async (req, res) => {
+  try {
+    const user_id = req.user.id;  // Obtener el user_id desde el JWT decodificado
+    console.log("user_id recibido:", user_id);  // Log para depuración
+
+    // Buscar al usuario y sus contactos
+    const user = await UserRepository.findContacts(user_id);
+
     if (!user) {
       return res.status(404).json({
         ok: false,
         status: 404,
-        message: 'Current user not found',
+        message: 'User not found'
       });
     }
-
-    // Agregar contacto al usuario
-    const updatedUser = await UserRepository.addContact(user_id, user_found._id);
-    console.log("Usuario actualizado:", updatedUser);
 
     return res.status(200).json({
       ok: true,
       status: 200,
-      message: 'Contact added successfully',
+      message: 'Contacts found',
+      data: {
+        contacts: user.contacts
+      }
     });
   } catch (error) {
-    console.error(error);
+    console.error('Error al obtener los contactos:', error);
     return res.status(500).json({
       ok: false,
       status: 500,
-      message: 'Internal server error',
+      message: 'Internal server error'
     });
   }
 };
 
 
-
-
 export const getAllContactsController = async (req, res) => {
   try {
     const user_id = req.user.id;  // Obtener el user_id desde el JWT decodificado
-    console.log("user_id recibido:", user_id);  // Verifica que el user_id esté presente
 
     // Buscar al usuario y sus contactos
     const user = await UserRepository.findContacts(user_id);
@@ -185,10 +199,18 @@ export const updateContactController = async (req, res) => {
   }
 };
 
-
 export const deleteContactController = async (req, res) => {
   try {
-    const { user_id, contact_id } = req.params; // Asegúrate de recibir ambos ids
+    const { user_id, contact_id } = req.params;
+
+    // Verifica si los IDs son válidos
+    if (!mongoose.Types.ObjectId.isValid(user_id) || !mongoose.Types.ObjectId.isValid(contact_id)) {
+      return res.status(400).json({
+        ok: false,
+        status: 400,
+        message: 'Invalid ObjectId format'
+      });
+    }
 
     const user = await UserRepository.findUserById(user_id);
     if (!user) {
@@ -199,6 +221,7 @@ export const deleteContactController = async (req, res) => {
       });
     }
 
+    // Busca el contacto dentro del usuario
     const contact = user.contacts.find(contact => contact.toString() === contact_id);
     if (!contact) {
       return res.status(404).json({
@@ -208,7 +231,8 @@ export const deleteContactController = async (req, res) => {
       });
     }
 
-    await UserRepository.deleteContact(user_id, contact_id); // Elimina el contacto
+    // Elimina el contacto
+    await UserRepository.deleteContact(user_id, contact_id);
 
     return res.status(200).json({
       ok: true,

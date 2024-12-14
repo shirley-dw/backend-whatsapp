@@ -1,38 +1,24 @@
 
-import mongoose from "mongoose";
 import Message from "../models/message.model.js";
 
 class MessageRepository {
     // Crear un nuevo mensaje
     static async createMessage(message_data) {
-        try {
-            return await Message.create(message_data);
-        } catch (error) {
-            console.error("Error al crear el mensaje:", error);
-            throw new Error("Error al crear el mensaje");
-        }
+        return Message.create(message_data)
     }
 
     // Encontrar mensajes entre dos usuarios con soporte para paginación y ordenación
-    static async findMessagesBetweenUsers(user_id_1, user_id_2, page = 1, limit = 10, sort = -1) {
-        try {
-            const messages = await Message.find({
+    static async findMessagesBetweenUsers(user_id_1, user_id_2) {
+        return Message.find(
+            {
                 $or: [
                     { author: user_id_1, receiver: user_id_2 },
                     { author: user_id_2, receiver: user_id_1 }
                 ]
-            })
-                .sort({ createdAt: sort })
-                .skip((page - 1) * limit)
-                .limit(limit)
-                .lean();
-
-            return messages;
-        } catch (error) {
-            console.error("Error al obtener los mensajes:", error);
-            throw new Error("Error al obtener los mensajes");
-        }
+            }
+        )
     }
+
 
     // Obtener el total de mensajes entre dos usuarios
     static async countMessagesBetweenUsers(user_id_1, user_id_2) {
@@ -59,8 +45,7 @@ class MessageRepository {
         }
     }
 
-    // Encontrar un mensaje por IDimport Message from "../models/message.model.js";
-
+    // Encontrar un mensaje por ID
     static async findMessageById(id) {
         try {
             return await Message.findById(id).lean();  // Obtiene un mensaje específico
