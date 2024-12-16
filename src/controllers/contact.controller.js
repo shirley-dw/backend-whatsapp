@@ -56,7 +56,6 @@ export const createContactForUser = async (req, res) => {
 export const getUserContacts = async (req, res) => {
   try {
     const user_id = req.user.id;  // Obtener el user_id desde el JWT decodificado
-    console.log("user_id recibido:", user_id);  // Log para depuración
 
     // Buscar al usuario y sus contactos
     const user = await UserRepository.findContacts(user_id);
@@ -125,11 +124,9 @@ export const getAllContactsController = async (req, res) => {
 
 export const getContactByIdController = async (req, res) => {
   try {
-    const { id } = req.params;
-    const user_id = req.user.user_id;  // Obtener el user_id desde el JWT decodificado
-    console.log("user_id recibido:", user_id);  // Log para depuración
+    const user_id = req.user.id  // Obtener el user_id desde el JWT decodificado
 
-    const contacto = await UserRepository.findUserById(id);
+    const contacto = await UserRepository.findUserById(user_id);
     if (!contacto) {
       return res.status(404).json({
         ok: false,
@@ -199,35 +196,49 @@ export const updateContactController = async (req, res) => {
   }
 };
 
+// Eliminar un contacto
 export const deleteContactController = async (req, res) => {
   try {
-    const { user_id, contact_id } = req.params;
+    const user_id = req.user.id;  // Obtener el user_id desde el JWT decodificado
+    const { contact_id } = req.params;
 
-    // Verifica si los IDs son válidos
-    if (!mongoose.Types.ObjectId.isValid(user_id) || !mongoose.Types.ObjectId.isValid(contact_id)) {
+    // Valida los IDs
+    if (!mongoose.Types.ObjectId.isValid(user_id)) {
       return res.status(400).json({
         ok: false,
         status: 400,
-        message: 'Invalid ObjectId format'
+        message: "Invalid user_id format",
       });
     }
 
+    if (!mongoose.Types.ObjectId.isValid(contact_id)) {
+      return res.status(400).json({
+        ok: false,
+        status: 400,
+        message: "Invalid contact_id format",
+      });
+    }
+
+    // Busca al usuario
     const user = await UserRepository.findUserById(user_id);
     if (!user) {
       return res.status(404).json({
         ok: false,
         status: 404,
-        message: 'User not found'
+        message: "User not found",
       });
     }
 
-    // Busca el contacto dentro del usuario
-    const contact = user.contacts.find(contact => contact.toString() === contact_id);
-    if (!contact) {
+    // Verifica que el contacto exista en la lista de contactos
+    const contactExists = user.contacts.some(
+      (contact) => contact.toString() === contact_id
+    );
+
+    if (!contactExists) {
       return res.status(404).json({
         ok: false,
         status: 404,
-        message: 'Contact not found'
+        message: "Contact not found in user's contacts",
       });
     }
 
@@ -237,14 +248,14 @@ export const deleteContactController = async (req, res) => {
     return res.status(200).json({
       ok: true,
       status: 200,
-      message: 'Contact deleted successfully'
+      message: "Contact deleted successfully",
     });
   } catch (error) {
     console.error("Error al eliminar el contacto:", error);
     return res.status(500).json({
       ok: false,
       status: 500,
-      message: 'Internal server error'
+      message: "Internal server error",
     });
   }
 };

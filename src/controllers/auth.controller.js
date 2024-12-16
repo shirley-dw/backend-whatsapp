@@ -10,6 +10,7 @@ import {
   verifyString,
 } from "../helpers/validations.helpers.js";
 import UserRepository from "../repositories/user.repository.js";
+import mongoose from "mongoose";
 
 export const registerController = async (req, res) => {
   try {
@@ -200,74 +201,74 @@ export const verifyEmailController = async (req, res) => {
 
 export const loginController = async (req, res) => {
   try {
-    const { email, password } = req.body;
+    const { email, password } = req.body; // Este body es el que llega desde el front
 
-    const user = await UserRepository.findUserByEmail(email);
+    const user = await UserRepository.findUserByEmail(email); // Busca en la DB si existe un usuario con ese email
     if (!user) {
+      // Este if verifica si el usuario no existe
       const response = new ResponseBuilder()
-        .setCode(400) // Cambiado a número de código de estado HTTP
+        .setCode(400)
         .setOk(false)
         .setMessage("Email no encontrado")
         .build();
       return res.json(response);
     }
-
-    const passwordIsValid = await bcrypt.compare(password, user.password);
+    const passwordIsValid = await bcrypt.compare(password, user.password); // Compara la password recibida con la password hasheada del usuario
     if (!passwordIsValid) {
       const response = new ResponseBuilder()
-        .setCode(401) // Código de error para contraseña inválida
+        .setCode(401)
         .setOk(false)
         .setMessage("Password inválida")
         .build();
       return res.json(response);
     }
-
     if (!user.emailVerified) {
+      // Verifica si el email del usuario es verificado
       const response = new ResponseBuilder()
-        .setCode(403) // Código de error para email no verificado
+        .setCode(403)
         .setOk(false)
         .setMessage("Email no verificado")
         .build();
       return res.json(response);
     }
 
-    // Actualizar el estado del usuario a "online"
+    // Actualizar el estado del usuario a 'online' y la última vez activo
     user.status = "online";
     user.lastActive = Date.now();
     await user.save();
 
-    // Generar el token JWT con el user_id
     const token = jwt.sign(
+      // Genera un token de acceso
       {
-        user_id: user._id,  // Este campo es el que necesitas
-        email: user.email
+        user_id: user._id,
+        name: user.name,
+        email: user.email,
       },
-      process.env.SECRET_KEY,
-      { expiresIn: '1h' }
+      ENVIROMENT.SECRET_KEY,
+      {
+        expiresIn: "1d", // Esto determina cuánto dura la sesión del usuario
+      }
     );
 
-
-    // Responder con éxito
-    const response = new ResponseBuilder()
-      .setCode(200) // Código de estado HTTP para éxito
+    const response = new ResponseBuilder() // Responder exitosamente con el token de acceso
+      .setCode("Exitosamente autenticado")
       .setOk(true)
-      .setMessage("Exitosamente autenticado") // Mensaje correcto
-      .setData({ token: token, userId: user._id.toString() }) // Asegúrate de devolver el ID como string si es necesario
-      .build();
-
+      .setStatus(200)
+      .setData({ token: token, userId: user._id })
+      .build(); // Con esto se envía el token al front
     return res.json(response);
   } catch (error) {
+    // En caso de error
     console.error(error);
     res.sendStatus(500);
-    const response = new ResponseBuilder()
-      .setCode(500) // Código de error para servidor
+    const response = new ResponseBuilder() // Responder con un error
+      .setCode(400)
       .setOk(false)
       .setMessage("Algo salió mal")
       .build();
     return res.json(response);
   }
 };
-
 
 export const forgotPasswordController = async (req, res) => {
   try {
@@ -353,13 +354,29 @@ export const logoutController = async (req, res) => {
   }
 };
 
+
 export const userInformationIdController = async (req, res) => {
   try {
-    const { id } = req.params;
-    const user = await UserRepository.findUserById(id);
+    const { user_id } = req.params;
+
+    // Validar si el user_id es un ObjectId válido
+    if (!mongoose.Types.ObjectId.isValid(user_id)) {
+      return res.status(400).json({ error: 'El user_id proporcionado no es válido.' });
+    }
+
+    // Buscar al usuario en la base de datos
+    const user = await UserRepository.findUserById(user_id);
+
+    // Verificar si el usuario fue encontrado
+    if (!user) {
+      return res.status(404).json({ error: 'Usuario no encontrado.' });
+    }
+
+    // Responder con los datos del usuario
     res.status(200).json(user);
   } catch (error) {
-    console.error(error);
-    res.sendStatus(500);
+    // Registrar el error y enviar un código de error interno
+    console.error('Error al obtener la información del usuario:', error);
+    res.status(500).json({ error: 'Error interno del servidor.' });
   }
 };

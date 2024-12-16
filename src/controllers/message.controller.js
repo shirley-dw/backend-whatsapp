@@ -43,10 +43,21 @@ export const createMessage = async (req, res) => {
 
 export const getConversation = async (req, res) => {
   try {
-    const user_id = req.user.id
-    const { receiver_id } = req.params
-    const conversation = await MessageRepository.findMessagesBetweenUsers(user_id, receiver_id)
-    console.log(conversation)
+    const { user_id, receiver_id } = req.params;
+
+
+    // Realizar la consulta a la base de datos
+    const conversation = await MessageRepository.findMessagesBetweenUsers(user_id, receiver_id);
+    console.log('Conversation:', conversation);
+
+    // Si la conversación está vacía
+    if (conversation.length === 0) {
+      return res.status(404).json({
+        ok: false,
+        status: 404,
+        message: 'No messages found between the users.'
+      });
+    }
 
     return res.status(200).json({
       ok: true,
@@ -54,21 +65,17 @@ export const getConversation = async (req, res) => {
       message: 'Conversation found',
       data: {
         conversation
-
       }
-    })
-  }
-
-  catch (error) {
-    console.error(error)
+    });
+  } catch (error) {
+    console.error('Error occurred:', error);
     return res.status(500).json({
       ok: false,
       status: 500,
       message: 'Internal server error'
-    })
+    });
   }
-}
-
+};
 
 
 // Obtener todos los mensajes
@@ -205,3 +212,4 @@ export const deleteMessageController = async (req, res) => {
     });
   }
 };
+
