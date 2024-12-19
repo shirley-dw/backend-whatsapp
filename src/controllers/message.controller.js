@@ -1,18 +1,10 @@
-
-import { log } from "console";
 import MessageRepository from "../repositories/message.repository.js";
-import mongoose from "mongoose";
-
 
 // Crear un nuevo mensaje
 export const createMessage = async (req, res) => {
   try {
     const user_id = req.user.id;  // Obtener el user_id desde el JWT decodificado
     const { receiver_id, content } = req.body;
-
-    console.log("user_id:", user_id);  // Log para depuración
-    console.log("receiver_id:", receiver_id);
-    console.log("content:", content);
 
     if (!user_id || !receiver_id || !content) {
       return res.status(400).json({ ok: false, message: 'Missing required fields' });
@@ -40,11 +32,10 @@ export const createMessage = async (req, res) => {
   }
 };
 
-
+// Obtener la conversación entre dos usuarios
 export const getConversation = async (req, res) => {
   try {
     const { user_id, receiver_id } = req.params;
-
 
     // Realizar la consulta a la base de datos
     const conversation = await MessageRepository.findMessagesBetweenUsers(user_id, receiver_id);
@@ -78,70 +69,34 @@ export const getConversation = async (req, res) => {
 };
 
 
-// Obtener todos los mensajes
-
-export const getAllMessagesController = async (req, res) => {
+// Obtener el último mensaje entre dos usuarios
+export const getLastMessageController = async (req, res) => {
   try {
-    const messages = await MessageRepository.findAllMessages();
-    if (!messages || messages.length === 0) {
+    const { user_id, receiver_id } = req.params;  // Obtener user_id y receiver_id desde los parámetros de la URL
+
+    const lastMessage = await MessageRepository.findLastMessageBetweenUsers(user_id, receiver_id);
+
+    if (!lastMessage) {
       return res.status(404).json({
         ok: false,
         status: 404,
-        message: "No messages found"
+        message: "No se encontró el último mensaje en esta conversación",
       });
     }
 
     return res.status(200).json({
       ok: true,
       status: 200,
-      data: messages
+      message: "Último mensaje obtenido exitosamente",
+      data: lastMessage,
     });
+
   } catch (error) {
-    console.error("Error al obtener los mensajes:", error);
+    console.error("Error al obtener el último mensaje:", error);
     return res.status(500).json({
       ok: false,
       status: 500,
-      message: "Error interno del servidor"
-    });
-  }
-};
-
-
-// Obtener un mensaje por ID
-export const getMessageByIdController = async (req, res) => {
-  try {
-    const { id } = req.params;
-
-    // Verificar si el id es válido
-    if (!mongoose.Types.ObjectId.isValid(id)) {
-      return res.status(400).json({
-        ok: false,
-        status: 400,
-        message: "Invalid message ID"
-      });
-    }
-
-    const message = await MessageRepository.findMessageById(id);
-    if (!message) {
-      return res.status(404).json({
-        ok: false,
-        status: 404,
-        message: "Message not found"
-      });
-    }
-
-    return res.status(200).json({
-      ok: true,
-      status: 200,
-      message: "Message found",
-      data: message
-    });
-  } catch (error) {
-    console.error("Error al obtener el mensaje:", error);
-    return res.status(500).json({
-      ok: false,
-      status: 500,
-      message: "Error interno del servidor"
+      message: "Error al obtener el último mensaje",
     });
   }
 };

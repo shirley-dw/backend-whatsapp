@@ -120,40 +120,64 @@ export const getAllContactsController = async (req, res) => {
   }
 };
 
-
-
+// Obtener un contacto por su ID
 export const getContactByIdController = async (req, res) => {
   try {
-    const user_id = req.user.id  // Obtener el user_id desde el JWT decodificado
+    const { contact_id } = req.params;
+    const user_id = req.user.id;  // Obtener el user_id desde el JWT decodificado
 
-    const contacto = await UserRepository.findUserById(user_id);
+    // Verifica que el contact_id sea válido
+    if (!mongoose.Types.ObjectId.isValid(contact_id)) {
+      return res.status(400).json({
+        ok: false,
+        status: 400,
+        message: "Invalid ID format",
+      });
+    }
+
+    // Obtén al usuario por su ID (user_id del token)
+    const user = await UserRepository.findUserById(user_id);
+    if (!user) {
+      return res.status(404).json({
+        ok: false,
+        status: 404,
+        message: "User not found",
+      });
+    }
+
+    // Verifica si el contacto está en la lista de contactos del usuario
+    const contacto = user.contacts.find(contact => contact.toString() === contact_id);
+
     if (!contacto) {
       return res.status(404).json({
         ok: false,
         status: 404,
-        message: 'Contact not found'
+        message: "Contact not found",
       });
     }
+
+    // Aquí puedes hacer populate si quieres información más detallada del contacto
+    const contactoDetails = await UserRepository.findUserById(contact_id);
 
     return res.status(200).json({
       ok: true,
       status: 200,
-      message: 'Contact found',
-      data: contacto
+      message: "Contact found",
+      data: contactoDetails,
     });
   } catch (error) {
     console.error("Error al obtener el contacto:", error);
     return res.status(500).json({
       ok: false,
       status: 500,
-      message: 'Internal server error'
+      message: "Internal server error",
     });
   }
 };
 
 
 
-export const updateContactController = async (req, res) => {
+/* export const updateContactController = async (req, res) => {
   try {
     const { contact_id } = req.params;
     if (!mongoose.Types.ObjectId.isValid(contact_id)) {
@@ -195,7 +219,7 @@ export const updateContactController = async (req, res) => {
     });
   }
 };
-
+ */
 // Eliminar un contacto
 export const deleteContactController = async (req, res) => {
   try {

@@ -18,7 +18,20 @@ class MessageRepository {
             }
         )
     }
-
+    // Obtener el ultimo mensaje entre dos usuarios
+    static async findLastMessageBetweenUsers(user_id_1, user_id_2) {
+        try {
+            return await Message.findOne({
+                $or: [
+                    { author: user_id_1, receiver: user_id_2 },
+                    { author: user_id_2, receiver: user_id_1 }
+                ]
+            }).sort({ created_at: -1 }).lean();
+        } catch (error) {
+            console.error("Error al obtener el ultimo mensaje:", error);
+            throw new Error("Error al obtener el ultimo mensaje");
+        }
+    }
 
     // Obtener el total de mensajes entre dos usuarios
     static async countMessagesBetweenUsers(user_id_1, user_id_2) {
