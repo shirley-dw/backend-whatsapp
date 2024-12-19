@@ -6,9 +6,8 @@ import contactRouter from "./routes/contact.route.js";
 import statusRouter from "./routes/status.route.js";
 import connectDB from './config/db.config.js';
 import { customCorsMiddleware } from "./middlewares/cors.middleware.js";
-import ENVIROMENT from "./config/enviroment.js";
 
-const PORT = ENVIROMENT.PORT;
+const PORT = 3000;
 const app = express();
 
 // Middleware para procesar datos codificados en URL (opcional)
@@ -36,8 +35,8 @@ const startServer = async () => {
     await connectDB();
 
     // Iniciar el servidor Express
-    app.listen(PORT, () => {
-      console.log(`✅ Servidor y MongoDB en la nube están listos en http://localhost:${PORT}`);
+    app.listen(3000, () => {
+      console.log(`✅ Servidor y MongoDB en la nube están listos en http://localhost:3000`);
     });
 
   } catch (error) {
